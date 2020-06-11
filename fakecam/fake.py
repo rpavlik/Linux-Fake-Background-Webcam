@@ -320,12 +320,12 @@ def parse_args():
     return parser.parse_args()
 
 
-def sigint_handler(loop, cam, signal, frame):
+def reload_handler(loop, cam, signal, frame):
     print("Reloading background / foreground images")
     asyncio.ensure_future(cam.load_images())
 
 
-def sigquit_handler(loop, cam, signal, frame):
+def shutdown_handler(loop, cam, signal, frame):
     print("Killing fake cam process")
     cam.stop()
     sys.exit(0)
@@ -349,11 +349,13 @@ def main():
         v4l2loopback_path=args.v4l2loopback_path,
         use_akvcam=args.akvcam)
     loop = asyncio.get_event_loop()
-    signal.signal(signal.SIGINT, partial(sigint_handler, loop, cam))
-    signal.signal(signal.SIGQUIT, partial(sigquit_handler, loop, cam))
+    signal.signal(signal.SIGINT, partial(shutdown_handler, loop, cam))
+    signal.signal(signal.SIGUSR1, partial(reload_handler, loop, cam))
+    from os import getpid
     print("Running...")
-    print("Please CTRL-C to reload the background / foreground images")
-    print("Please CTRL-\ to exit")
+    print("PID: "+ str(getpid()))
+    print("Please send SIGUSR1 to reload the background / foreground images")
+    print("Please CTRL-C to exit")
     # frames forever
     loop.run_until_complete(cam.run())
 
