@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const tf = require('@tensorflow/tfjs-node');
 const bodyPix = require('@tensorflow-models/body-pix');
 const http = require('http');
